@@ -18,7 +18,7 @@ import os
 from pathlib import Path
 
 path = os.path.dirname(__file__)
-ip_address = ""
+ip_address = "" #Server ip address here
 filePath = path+r"\data\emailAndBacklog.txt"
 
 file = open(filePath, "a")
@@ -230,7 +230,7 @@ class Ui_MainWindow(object):
                                 smtp_server = "smtp.gmail.com"  
                                 smtp_port = 587  
                                 smtp_username = "icodeemailer@gmail.com"
-                                smtp_password = "oiqvabvjjqpdsydu"
+                                smtp_password = "" #Passwords Here
 
                                 # Connect to the SMTP server and start TLS encryption
                                 server = smtplib.SMTP(smtp_server, smtp_port)
