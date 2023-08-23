@@ -5,3 +5,5 @@ Related Images:
 ![iCodeDemoImage1](https://github.com/JackB7145/iCode/assets/99556867/81d2e61b-d5f3-4e3a-8a0b-3bfa6aa7fbd5) 
 ![iCodeDemoImage2](https://github.com/JackB7145/iCode/assets/99556867/e504f3a2-b234-4ef1-a186-4d3ed1f26a73)
 
+Additionally, I've included codingHours, a program that displays a graph of the current amount of time spent programming in VScode. It uses mathplotlib and numpy.
+
