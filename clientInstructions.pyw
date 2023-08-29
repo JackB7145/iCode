@@ -1,3 +1,4 @@
+#Importing important libaries
 import socket
 import time 
 import datetime
@@ -17,19 +18,23 @@ from PyQt5.QtCore import QPoint
 import os
 from pathlib import Path
 
+#initializing the ip address
+ip_addr = ""
+#Identifying the path of the file
 path = os.path.dirname(__file__)
-ip_address = "" #Server ip address here
+
 filePath = path+r"\data\emailAndBacklog.txt"
 
+#Opening the data documents
 file = open(filePath, "a")
 readFile = open(filePath, "r")
 
+#Reading in the userdata
 userData = readFile.readline()
 email = None
 code = None
 
-#GUI
-
+#Initializing the GUI class
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
 
@@ -230,7 +235,7 @@ class Ui_MainWindow(object):
                                 smtp_server = "smtp.gmail.com"  
                                 smtp_port = 587  
                                 smtp_username = "icodeemailer@gmail.com"
-                                smtp_password = "" #Passwords Here
+                                smtp_password = "oiqvabvjjqpdsydu"
 
                                 # Connect to the SMTP server and start TLS encryption
                                 server = smtplib.SMTP(smtp_server, smtp_port)
@@ -285,10 +290,10 @@ class Ui_MainWindow(object):
             except:
                    self.displayToast("Invalid Verification Code Entered!")
                   
+#Defining variables
 full_msg = ''
+email = ""
 if userData == "":
-        
-        email = ""
         import sys
         app = QtWidgets.QApplication(sys.argv)
         ui = Ui_MainWindow()
@@ -296,82 +301,96 @@ if userData == "":
         ui.setupUi(MainWindow)
         MainWindow.show()
         app.exec()
-                       
-        try:            
+
+#Connecting to the correct server                
+try:            
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((ip_addr, 7145))
+        s.send(userData.encode())
+        userData = userData.split()
+        s.close()
+except:
+
+#An error occured while connecting to the server
+        print("Connection Error")
+readFile.close()
+readFile = open(filePath, "r")
+
+# Load the pre-trained face detection model from OpenCV
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Initialize the webcam
+cap = cv2.VideoCapture(0)
+
+ready = False
+
+#Start the main loop of tracking the user's activities
+while True:
+        try:
+                time.sleep(1)
+                weekDay = datetime.date.weekday(datetime.date.today())
+                # Capture frame-by-frame
+                ret, frame = cap.read()
+
+                # Convert the frame to grayscale for face detection
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                # Detect faces in the frame
+                faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=10, minSize=(30, 30))
+
+                #If the user is looking at their screen 
+                if len(faces):
+                        looking = True
+                else:
+                        looking = False
+
+                #Looking for the active screen
+                try:
+                        current_app = psutil.Process(win32process.GetWindowThreadProcessId(GetForegroundWindow())[1]).name().replace(".exe", "")
+                except:
+                        current_app = None
+                        print("Switched Tabs Too Fast!")
+
+                #Connecting to the server to start sending the constant flow of data
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((ip_address, 7145))
-                s.send(userData.encode())
+                s.connect((ip_addr, 7145))
+                s.setblocking(False)
+
+                #Opening relevant files
+                file = open(filePath, "a")
+                readFile = open(filePath, "r")
+                userData = readFile.readline()
                 userData = userData.split()
+                print(userData)
+
+                #Resetting the form when Monday rolls around
+                if weekDay == 0 and ready:
+                        
+                        file.truncate(0)
+                        weeklyTotal = sum([int(userData[x]) for x in range(2, 9)])
+
+                        if weeklyTotal > int(userData[1]):
+                                userData[1] = weeklyTotal
+
+                        file.write(userData[0]+" "+str(userData[1])+" 0 0 0 0 0 0 0 0")
+                        ready = False
+                elif weekDay == 6:
+                        ready = True
+
+                #Adding the counter tracking how much the user is programming
+                if looking and current_app == "Code":
+                        
+                        
+                        weekDay = datetime.date.weekday(datetime.date.today())
+                        userData[weekDay+2] = str(int(userData[weekDay+2]) + 1)
+                        file.truncate(0)
+                        newData = " ".join(userData)
+                        file.write(newData)
+                        s.send(newData.encode())
+
+                #Closing relevant files
+                file.close()
+                readFile.close()
                 s.close()
         except:
-                print("Connection Error")
-        readFile.close()
-        readFile = open(filePath, "r")
-        # Load the pre-trained face detection model from OpenCV
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
-        # Initialize the webcam
-        cap = cv2.VideoCapture(0)
-
-        ready = False
-        while True:
-                try:
-                        time.sleep(1)
-                        weekDay = datetime.date.weekday(datetime.date.today())
-                        # Capture frame-by-frame
-                        ret, frame = cap.read()
-
-                        # Convert the frame to grayscale for face detection
-                        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-                        # Detect faces in the frame
-                        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=10, minSize=(30, 30))
-
-                        if len(faces):
-                                looking = True
-                        else:
-                                looking = False
-                        try:
-                                current_app = psutil.Process(win32process.GetWindowThreadProcessId(GetForegroundWindow())[1]).name().replace(".exe", "")
-                        except:
-                                current_app = None
-                                print("Switched Tabs Too Fast!")
-
-                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        s.connect((ip_address, 7145))
-                        s.setblocking(False)
-
-                        file = open(filePath, "a")
-                        readFile = open(filePath, "r")
-                        userData = readFile.readline()
-                        userData = userData.split()
-                        print(userData)
-
-                        if weekDay == 0 and ready:
-                                
-                                file.truncate(0)
-                                weeklyTotal = sum([int(userData[x]) for x in range(2, 9)])
-
-                                if weeklyTotal > int(userData[1]):
-                                        userData[1] = weeklyTotal
-
-                                file.write(userData[0]+" "+str(userData[1])+" 0 0 0 0 0 0 0 0")
-                                ready = False
-                        elif weekDay == 6:
-                                ready = True
-
-
-                        if looking and current_app == "Code":
-                                
-                                
-                                weekDay = datetime.date.weekday(datetime.date.today())
-                                userData[weekDay+2] = str(int(userData[weekDay+2]) + 1)
-                                file.truncate(0)
-                                newData = " ".join(userData)
-                                file.write(newData)
-                                s.send(newData.encode())
-                        file.close()
-                        readFile.close()
-                        s.close()
-                except:
-                        print("Error Detected")
+                print("Error Detected")
