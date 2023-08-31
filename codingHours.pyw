@@ -46,7 +46,7 @@ try:
     plt.xticks(xpos,company)
     plt.ylabel(title+" Spent Programming")
     plt.xlabel("Days Of The Week")
-    plt.title('Hours Spent Programming')
+    plt.title('Time Spent Programming')
     plt.legend()
 
     #Displaying the graph
